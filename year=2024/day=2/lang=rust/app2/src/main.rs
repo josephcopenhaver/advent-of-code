@@ -1,6 +1,6 @@
 const INPUT: &str = include_str!("../../../input.txt");
 
-fn increasing(x: &Vec<i32>) -> bool {
+fn mono_inc(x: &Vec<i32>) -> bool {
     let mut prev = x[0];
     for &n in x.iter().skip(1) {
         if n <= prev {
@@ -14,7 +14,7 @@ fn increasing(x: &Vec<i32>) -> bool {
     true
 }
 
-fn decreasing(x: &Vec<i32>) -> bool {
+fn mono_dec(x: &Vec<i32>) -> bool {
     let mut prev = x[0];
     for &n in x.iter().skip(1) {
         if n >= prev {
@@ -38,13 +38,13 @@ fn main() {
                     .split_whitespace()
                     .map(|f| f.parse::<i32>().unwrap())
                     .collect();
-                if increasing(&x) || decreasing(&x) {
+                if mono_inc(&x) || mono_dec(&x) {
                     return 1;
                 }
                 for i in 0..x.len() {
                     let mut x = x.clone();
                     x.remove(i);
-                    if increasing(&x) || decreasing(&x) {
+                    if mono_inc(&x) || mono_dec(&x) {
                         return 1;
                     }
                 }
