@@ -1,9 +1,10 @@
 const INPUT: &str = include_str!("../../../input.txt");
 
 const NEEDLE: &str = "MAS";
-const NEEDLE_REV: &str = "SAM";
 
 fn main() {
+    let needle_rev = &NEEDLE.chars().rev().collect::<String>();
+    let needle_idx_shift = NEEDLE.len() - 1;
     // note: only works when grid w and h are at least NEEDLE length
 
     let h = INPUT.trim_end().chars().filter(|c| *c == '\n').count() + 1;
@@ -16,23 +17,24 @@ fn main() {
     let mut sum = 0;
 
     // diagonals
-    for y in 0..(h - NEEDLE.len() + 1) {
-        for x in 0..(w - NEEDLE.len() + 1) {
+    for y in 0..(h - needle_idx_shift) {
+        let negative_y_trend = y + needle_idx_shift;
+        for x in 0..(w - needle_idx_shift) {
             // positive y trend
             buf.clear();
             for d in 0..NEEDLE.len() {
                 buf.push(grid[y + d].as_bytes()[x + d] as char);
             }
-            if !(buf.eq(NEEDLE) || buf.eq(NEEDLE_REV)) {
+            if !(buf.eq(NEEDLE) || buf.eq(needle_rev)) {
                 continue;
             }
 
             // negative y trend
             buf.clear();
             for d in 0..NEEDLE.len() {
-                buf.push(grid[y + NEEDLE.len() - 1 - d].as_bytes()[x + d] as char);
+                buf.push(grid[negative_y_trend - d].as_bytes()[x + d] as char);
             }
-            if buf.eq(NEEDLE) || buf.eq(NEEDLE_REV) {
+            if buf.eq(NEEDLE) || buf.eq(needle_rev) {
                 sum += 1;
             }
         }

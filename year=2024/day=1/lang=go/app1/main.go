@@ -13,14 +13,7 @@ import (
 var INPUT []byte
 
 func main() {
-	size := 1
-	{
-		for _, b := range INPUT {
-			if b == '\n' {
-				size++
-			}
-		}
-	}
+	size := strings.Count(string(INPUT), "\n") + 1
 
 	left := make([]int, 0, size)
 	right := make([]int, 0, size)
