@@ -2,6 +2,9 @@
 // 100 in binary is 0b0110_0100 (note that MSB is unused in the byte)
 // so each node needs 7 bits to indicate presence and another 7 bits
 // to indicate directional pairing with another node
+//
+// This means that it would only take 1613 bytes to store all possible
+// directed edge combinations.
 
 use std::convert::Into;
 use std::error::Error;
@@ -74,13 +77,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             .split(",")
             .map(|v| v.parse::<u8>())
             .collect::<Result<_, _>>()?;
-        if !valid_order(&seq, &bm) {
+        if valid_order(&seq, &bm) {
             continue;
         }
 
-        // return value of the middle record
-        // sequence is guaranteed to be an odd length
-        sum += seq[seq.len() / 2] as i32;
+        sum += solve_middle(&seq, &bm) as i32
     }
 
     println!("{}", sum);
@@ -101,4 +102,52 @@ fn valid_order(seq: &Vec<u8>, bm: &Bitmap) -> bool {
     }
 
     true
+}
+
+fn solve_middle(seq: &Vec<u8>, bm: &Bitmap) -> u8 {
+    let middle_idx: usize = seq.len() / 2;
+
+    // compute weighted indexes
+    for (left_idx, left) in seq.iter().enumerate() {
+        let mut w: Option<usize> = None;
+
+        for (right_idx, right) in seq.iter().enumerate() {
+            if right_idx == left_idx {
+                continue;
+            }
+
+            let directed_edge = ((*left as u16) << SHIFT) | (*right as u16);
+
+            if !bm.is_set(directed_edge) {
+                // if there is no longer any hope, short circuit
+                let found = if let Some(v) = w { v } else { 0 };
+                let pending = seq.len() - 1 - right_idx + found;
+                if pending < middle_idx {
+                    w = None;
+                    break;
+                }
+
+                continue;
+            }
+
+            if let Some(v) = w {
+                // if we've passed the middle index, short circuit
+                if v == middle_idx {
+                    w = None;
+                    break;
+                }
+
+                w = Some(v + 1);
+                continue;
+            }
+
+            w = Some(1);
+        }
+
+        if Some(middle_idx) == w {
+            return *left;
+        }
+    }
+
+    panic!("input dataset has ordering relationship gaps");
 }
