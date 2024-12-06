@@ -1,5 +1,5 @@
-// assumes nodes are always a number between 0 and 100 inclusive
-// 100 in binary is 0b0110_0100 (note that MSB is unused in the byte)
+// assumes nodes are always a number between 0 and 99 inclusive
+// 99 in binary is 0b0110_0011 (note that MSB is unused in the byte)
 // so each node needs 7 bits to indicate presence and another 7 bits
 // to indicate directional pairing with another node
 //
@@ -11,7 +11,7 @@ use std::error::Error;
 
 const INPUT: &str = include_str!("../../../input.txt");
 
-const MAX_NODE_VAL: usize = 0b0110_0100;
+const MAX_NODE_VAL: usize = 0b0110_0011;
 const SHIFT: usize = 7;
 const MAX_BIT_COUNT: usize = (MAX_NODE_VAL << SHIFT) | MAX_NODE_VAL;
 const MAX_BYTE_COUNT: usize = (MAX_BIT_COUNT + 7) / 8;
@@ -32,22 +32,19 @@ impl Bitmap {
     fn set<T: Into<usize>>(&mut self, idx: T) {
         let idx = idx.into();
 
-        let v = &mut self.0[idx / 8];
-        *v = *v | (0x80 >> (idx % 8));
+        self.0[idx / 8] |= 1 << (idx % 8);
     }
 
     // fn clear<T: Into<usize>>(&mut self, idx: T) {
     //     let idx = idx.into();
     //
-    //     let v = &mut self.0[idx / 8];
-    //     *v = *v & (0xFF ^ (0x80 >> (idx % 8)));
+    //     self.0[idx / 8] &= !(1 << (idx % 8));
     // }
 
     fn is_set<T: Into<usize>>(&self, idx: T) -> bool {
         let idx = idx.into();
 
-        let v = self.0[idx / 8];
-        (v & (0x80 >> (idx % 8))) != 0
+        (self.0[idx / 8] & (1 << (idx % 8))) != 0
     }
 }
 
@@ -85,7 +82,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     println!("{}", sum);
-
     Ok(())
 }
 

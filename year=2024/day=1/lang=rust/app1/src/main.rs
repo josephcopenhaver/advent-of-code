@@ -1,23 +1,27 @@
+use std::error::Error;
+
 const INPUT: &str = include_str!("../../../input.txt");
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let size = INPUT.trim_end().chars().filter(|c| *c == '\n').count() + 1;
 
     let mut left = Vec::<i32>::with_capacity(size);
     let mut right = Vec::<i32>::with_capacity(size);
-    INPUT.lines().for_each(|v| {
-        let mut it = v.split_whitespace();
-        left.push(it.next().unwrap().parse::<i32>().unwrap());
-        right.push(it.next().unwrap().parse::<i32>().unwrap());
-    });
+    for v in INPUT.lines() {
+        let (l, r) = v
+            .split_once("   ")
+            .expect("record not separated by 3 spaces");
+        left.push(l.parse::<i32>()?);
+        right.push(r.parse::<i32>()?);
+    }
     left.sort_unstable();
     right.sort_unstable();
 
-    println!(
-        "{}",
-        left.iter()
-            .zip(right.iter())
-            .map(|(l, r)| (l - r).abs())
-            .sum::<i32>()
-    );
+    let mut sum = 0;
+    for (l, r) in left.iter().zip(right.iter()) {
+        sum += (l - r).abs();
+    }
+
+    println!("{}", sum);
+    Ok(())
 }

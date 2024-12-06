@@ -1,6 +1,8 @@
+use std::error::Error;
+
 const INPUT: &str = include_str!("../../../input.txt");
 
-fn mono_inc(x: &Vec<i32>) -> bool {
+fn mono_inc(x: &[i32]) -> bool {
     let mut prev = x[0];
     for &n in x.iter().skip(1) {
         if n <= prev {
@@ -14,7 +16,7 @@ fn mono_inc(x: &Vec<i32>) -> bool {
     true
 }
 
-fn mono_dec(x: &Vec<i32>) -> bool {
+fn mono_dec(x: &[i32]) -> bool {
     let mut prev = x[0];
     for &n in x.iter().skip(1) {
         if n >= prev {
@@ -28,22 +30,29 @@ fn mono_dec(x: &Vec<i32>) -> bool {
     true
 }
 
-fn main() {
-    println!(
-        "{}",
-        INPUT
-            .lines()
-            .map(|v| {
-                let x: Vec<i32> = v
-                    .split_whitespace()
-                    .map(|f| f.parse::<i32>().unwrap())
-                    .collect();
-                if mono_inc(&x) || mono_dec(&x) {
-                    1
-                } else {
-                    0
-                }
-            })
-            .sum::<i32>()
-    );
+fn main() -> Result<(), Box<dyn Error>> {
+    let size = INPUT
+        .lines()
+        .map(|v| v.chars().filter(|&v| v == ' ').count())
+        .max()
+        .expect("no input")
+        + 1;
+
+    let mut buf: Vec<i32> = Vec::<i32>::with_capacity(size);
+
+    let mut sum = 0;
+    for v in INPUT.lines() {
+        buf.clear();
+        for v in v.split(" ") {
+            buf.push(v.parse::<i32>()?);
+        }
+
+        if mono_inc(&buf) || mono_dec(&buf) {
+            sum += 1;
+            continue;
+        }
+    }
+
+    println!("{}", sum);
+    Ok(())
 }
