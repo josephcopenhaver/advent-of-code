@@ -58,39 +58,46 @@ struct Guard {
 
 impl Guard {
     fn step(&mut self, grid: &Vec<Vec<u8>>) -> bool {
-        let step = |p: &Guard| match p.d {
-            Direction::Up => (self.x, self.y + 1),
-            Direction::Down => (self.x, self.y - 1),
-            Direction::Left => (self.x - 1, self.y),
-            Direction::Right => (self.x + 1, self.y),
-        };
+        // assumes that the guard never starts at a point surrounded by 3 obstructions
         loop {
-            let p = step(self);
+            // get next position
+            let p = match self.d {
+                Direction::Up => (self.x, self.y + 1),
+                Direction::Down => (self.x, self.y - 1),
+                Direction::Left => (self.x - 1, self.y),
+                Direction::Right => (self.x + 1, self.y),
+            };
 
-            if p.1 < 0 || p.1 >= grid.len() as i32 || p.0 < 0 || p.0 >= grid[0].len() as i32 {
+            // if not in grid, short circuit
+            if p.0 < 0 || p.0 as usize >= grid[0].len() {
+                return false;
+            }
+            if p.1 < 0 || p.1 as usize >= grid.len() {
                 return false;
             }
 
-            if grid[p.1 as usize][p.0 as usize] == b'#' {
-                self.d = match self.d {
-                    Direction::Up => Direction::Left,
-                    Direction::Down => Direction::Right,
-                    Direction::Left => Direction::Down,
-                    Direction::Right => Direction::Up,
-                };
-                continue;
+            // if landing where there is no obstruction
+            // update state and return true
+            if grid[p.1 as usize][p.0 as usize] != b'#' {
+                self.x = p.0;
+                self.y = p.1;
+                return true;
             }
 
-            self.x = p.0;
-            self.y = p.1;
-            return true;
+            // hit an obstruction, lets rotate
+            self.d = match self.d {
+                Direction::Up => Direction::Left,
+                Direction::Down => Direction::Right,
+                Direction::Left => Direction::Down,
+                Direction::Right => Direction::Up,
+            };
         }
     }
 }
 
 fn main() {
     let size = INPUT.trim_end().chars().filter(|c| *c == '\n').count() + 1;
-    // assume guard will leave the bounded zone
+    // assumes guard will leave the bounded zone
     // this means there are no cycles and there is clearly determinism
     // no state needs to be remembered other than visited squares before
     // terminal state is reached
