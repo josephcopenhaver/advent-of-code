@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // checksum for file blocks already in the right place
         while nums[reading_file_id * 2] > 0 {
             nums[reading_file_id * 2] -= 1;
-            sum += write_idx * reading_file_id;
+            sum += write_idx as u64 * reading_file_id as u64;
             write_idx += 1;
         }
 
@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         while nums[reading_file_id * 2 + 1] > 0 {
             nums[reading_file_id * 2 + 1] -= 1;
             nums[moving_file_id * 2] -= 1;
-            sum += write_idx * moving_file_id;
+            sum += write_idx as u64 * moving_file_id as u64;
             write_idx += 1;
             if nums[moving_file_id * 2] == 0 {
                 moving_file_id -= 1;
