@@ -63,17 +63,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for v in m.values() {
         let mut v = v.borrow_mut();
+        for v in v.iter() {
+            bm.set(v.1 as usize * w + v.0 as usize);
+        }
         while v.len() > 1 {
             let p1 = v.pop().expect("unreachable");
             for p2 in v.iter() {
                 let d = (p2.0 - p1.0, p2.1 - p1.1);
                 let mut anti = (p1.0 - d.0, p1.1 - d.1);
-                if anti.0 >= 0 && anti.0 < w as i32 && anti.1 >= 0 && anti.1 < h as i32 {
+                while anti.0 >= 0 && anti.0 < w as i32 && anti.1 >= 0 && anti.1 < h as i32 {
                     bm.set(anti.1 as usize * w + anti.0 as usize);
+                    anti = (anti.0 - d.0, anti.1 - d.1);
                 }
                 anti = (p2.0 + d.0, p2.1 + d.1);
-                if anti.0 >= 0 && anti.0 < w as i32 && anti.1 >= 0 && anti.1 < h as i32 {
+                while anti.0 >= 0 && anti.0 < w as i32 && anti.1 >= 0 && anti.1 < h as i32 {
                     bm.set(anti.1 as usize * w + anti.0 as usize);
+                    anti = (anti.0 + d.0, anti.1 + d.1);
                 }
             }
         }
