@@ -35,10 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
 
             totals.clear();
-            for v in &buf {
-                totals.push(*v);
-            }
-            buf.clear();
+            (totals, buf) = (buf, totals);
         }
 
         for v in totals {
