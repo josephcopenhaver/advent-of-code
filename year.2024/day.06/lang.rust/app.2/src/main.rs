@@ -184,8 +184,15 @@ fn will_cycle(
 ) -> bool {
     // note: this is a very good problem for parallel solving and centralized loop detection caching
     //
-    // a loop path can be cached independent of prior vectors if its segments do not also contain the
-    // node the guard stared on when he hit the new obstruction
+    // a path segment ending in a loop can be cached independent of prior vectors if the loop contributing
+    // segments never have a direction change due to hitting the newly added obstruction. All preceding
+    // nodes are also cacheable if not interacting with the obstruction. All backward projecting nodes
+    // from all segments in the prior definition that align with a node vector in it are also part of
+    // the cycle creating equivalance set as long as they do not interact with the new obstruction.
+    //
+    // Cycles that depend on the new obstruction are also potentially cacheable if one of the other three
+    // sides is involved in the cycle path such that the path does not change direction due to hitting the
+    // obstruction as either part of the cycle or a cycle prefix (after hitting the obstruction).
     //
     // Not doing it because this is fast enough for my lifetime and hardware.
     for v in visited.0.iter().enumerate() {
