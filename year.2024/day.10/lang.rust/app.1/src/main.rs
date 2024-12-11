@@ -54,36 +54,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut m = HashMap::<Point, usize>::with_capacity(scan_points.len());
     loop {
         for v in &scan_points {
-            for i in 0..4 {
-                let p = match i {
-                    0 => {
-                        if !(v.point.x > 0 && grid[v.point.y][v.point.x - 1] == next_elevation) {
-                            continue;
-                        }
-                        Point::new(v.point.x - 1, v.point.y)
-                    }
-                    1 => {
-                        if !(v.point.x < w - 1 && grid[v.point.y][v.point.x + 1] == next_elevation)
-                        {
-                            continue;
-                        }
-                        Point::new(v.point.x + 1, v.point.y)
-                    }
-                    2 => {
-                        if !(v.point.y > 0 && grid[v.point.y - 1][v.point.x] == next_elevation) {
-                            continue;
-                        }
-                        Point::new(v.point.x, v.point.y - 1)
-                    }
-                    3 => {
-                        if !(v.point.y < h - 1 && grid[v.point.y + 1][v.point.x] == next_elevation)
-                        {
-                            continue;
-                        }
-                        Point::new(v.point.x, v.point.y + 1)
-                    }
-                    _ => panic!("unreachable"),
-                };
+            for d in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
+                let x = v.point.x as i32 + d.0;
+                let y = v.point.y as i32 + d.1;
+
+                if x < 0 || y < 0 || x as usize > w - 1 || y as usize > h - 1 {
+                    continue;
+                }
+
+                let p = Point::new(x as usize, y as usize);
+
+                if grid[p.y][p.x] != next_elevation {
+                    continue;
+                }
 
                 match m.get(&p) {
                     None => {
