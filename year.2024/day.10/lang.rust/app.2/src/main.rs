@@ -21,13 +21,14 @@ impl Point {
 fn main() -> Result<(), Box<dyn Error>> {
     let w = INPUT.find("\n").expect("does not contain newlines");
     let h = INPUT.trim_end().chars().filter(|c| *c == '\n').count() + 1;
+    let num_peaks = INPUT.chars().filter(|c| *c == '9').count();
     let mut grid = vec![vec![0 as u8; w]; h];
 
     struct PointPaths {
         point: Point,
         path_count: i32,
     }
-    let mut scan_points = Vec::<PointPaths>::new();
+    let mut scan_points = Vec::<PointPaths>::with_capacity(num_peaks);
 
     let mut next_elevation = b'9';
     for (y, v) in INPUT.lines().enumerate() {
@@ -45,8 +46,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     next_elevation -= 1;
 
-    let mut buf = Vec::<PointPaths>::with_capacity(scan_points.len());
-    let mut m = HashMap::<Point, usize>::with_capacity(scan_points.len());
+    let mut buf = Vec::<PointPaths>::with_capacity(num_peaks);
+    let mut m = HashMap::<Point, usize>::with_capacity(num_peaks);
     loop {
         for v in &scan_points {
             for d in [(-1, 0), (1, 0), (0, -1), (0, 1)] {

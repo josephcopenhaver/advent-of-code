@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::rc::Rc;
@@ -23,14 +22,14 @@ impl Point {
 fn main() -> Result<(), Box<dyn Error>> {
     let w = INPUT.find("\n").expect("does not contain newlines");
     let h = INPUT.trim_end().chars().filter(|c| *c == '\n').count() + 1;
-    let num_peaks = INPUT.trim_end().chars().filter(|c| *c == '9').count() + 1;
+    let num_peaks = INPUT.chars().filter(|c| *c == '9').count();
     let mut grid = vec![vec![0 as u8; w]; h];
 
-    struct PointPeaks<'a> {
+    struct PointPeaks {
         point: Point,
-        peaks: Rc<Cow<'a, HashSet<Point>>>,
+        peaks: Rc<HashSet<Point>>,
     }
-    let mut scan_points = Vec::<PointPeaks>::new();
+    let mut scan_points = Vec::<PointPeaks>::with_capacity(num_peaks);
 
     let mut next_elevation = b'9';
     for (y, v) in INPUT.lines().enumerate() {
@@ -43,15 +42,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                 set.insert(p);
                 scan_points.push(PointPeaks {
                     point: p,
-                    peaks: Rc::new(Cow::Owned(set)),
+                    peaks: Rc::new(set),
                 });
             }
         }
     }
     next_elevation -= 1;
 
-    let mut buf = Vec::<PointPeaks>::with_capacity(scan_points.len());
-    let mut m = HashMap::<Point, usize>::with_capacity(scan_points.len());
+    let mut buf = Vec::<PointPeaks>::with_capacity(num_peaks);
+    let mut m = HashMap::<Point, usize>::with_capacity(num_peaks);
     loop {
         for v in &scan_points {
             for d in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
@@ -78,12 +77,36 @@ fn main() -> Result<(), Box<dyn Error>> {
                         m.insert(p, idx);
                     }
                     Some(idx) => {
-                        let mut cow_dst = Rc::make_mut(&mut buf[*idx].peaks).to_owned();
-                        let dst = cow_dst.to_mut();
-                        for v in v.peaks.iter() {
-                            dst.insert(*v);
+                        let idx = *idx;
+                        let dst = &mut buf[idx].peaks;
+
+                        let mut it = v.peaks.iter();
+                        for v in &mut it {
+                            if dst.contains(v) {
+                                continue;
+                            }
+
+                            match Rc::get_mut(dst) {
+                                Some(dst) => {
+                                    dst.insert(*v);
+                                    for v in it {
+                                        dst.insert(*v);
+                                    }
+                                }
+                                None => {
+                                    let mut new_dst = HashSet::<Point>::with_capacity(num_peaks);
+                                    for v in dst.iter() {
+                                        new_dst.insert(*v);
+                                    }
+                                    new_dst.insert(*v);
+                                    for v in it {
+                                        new_dst.insert(*v);
+                                    }
+                                    buf[idx].peaks = Rc::new(new_dst);
+                                }
+                            }
+                            break;
                         }
-                        buf[*idx].peaks = Rc::new(cow_dst);
                     }
                 }
             }
