@@ -47,8 +47,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         let mut dst = rc_dst.borrow_mut();
                         for v in src.iter().cloned() {
                             dst.insert(v);
-                        }
-                        for v in src.iter().cloned() {
                             equiv_sets.insert(v, rc_dst.clone());
                         }
                         continue;
@@ -79,12 +77,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         let hs = rc_hs.borrow();
         let area = hs.len();
 
-        for v in hs.iter().cloned() {
-            equiv_sets.remove(&v);
-        }
-
         let mut perimiter = 0;
         for v in hs.iter().cloned() {
+            equiv_sets.remove(&v);
+
             for d in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
                 let p = (v.0 + d.0, v.1 + d.1);
                 if p.0 < 0 || p.1 < 0 || p.0 >= w as i32 || p.1 >= h as i32 {
