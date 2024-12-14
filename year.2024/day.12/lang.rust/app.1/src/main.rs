@@ -29,26 +29,41 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 if grid[np.1 as usize][np.0 as usize] == grid[y][x] {
                     if merged_at_least_once {
-                        // short circuit if the candidate node is already in the src node we're going to merge into dst
-                        let rc_src = equiv_sets
+                        // short circuit if the candidate node is already in the node above's set
+                        let rc_set_a = equiv_sets
                             .get(&np)
                             .expect("must exist: above entry")
                             .clone();
-                        let src = rc_src.borrow();
-                        if src.contains(&p) {
+                        let set_a = rc_set_a.borrow();
+                        if set_a.contains(&p) {
                             continue;
                         }
 
-                        // merge the sets left and above into left
-                        let rc_dst = equiv_sets
+                        // merge the sets into the larger one or left
+                        let rc_set_b = equiv_sets
                             .get(&(p.0 - 1, p.1))
                             .expect("must exist: left entry")
                             .clone();
-                        let mut dst = rc_dst.borrow_mut();
+                        let set_b = rc_set_b.borrow();
+
+                        // minimize movement operations by finding the minimum size set to act as src
+
+                        let merge_b_to_a = set_b.len() < set_a.len();
+                        drop(set_b);
+                        drop(set_a);
+
+                        let (src, mut dst, rc_dst) = if merge_b_to_a {
+                            (rc_set_b.borrow(), rc_set_a.borrow_mut(), &rc_set_a)
+                        } else {
+                            (rc_set_a.borrow(), rc_set_b.borrow_mut(), &rc_set_b)
+                        };
+
+                        // perform the union and moves the equivalence class requires
                         for v in src.iter().cloned() {
                             dst.insert(v);
                             equiv_sets.insert(v, rc_dst.clone());
                         }
+
                         continue;
                     }
                     merged_at_least_once = true;
@@ -77,23 +92,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         let hs = rc_hs.borrow();
         let area = hs.len();
 
-        let mut perimiter = 0;
+        let mut perimeter = 0;
         for v in hs.iter().cloned() {
             equiv_sets.remove(&v);
 
             for d in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
                 let p = (v.0 + d.0, v.1 + d.1);
-                if p.0 < 0 || p.1 < 0 || p.0 >= w as i32 || p.1 >= h as i32 {
-                    perimiter += 1;
-                    continue;
-                }
+                // note that the check `if !(p.0 >= 0 && p.1 >= 0 && (p.0 as usize) < w && (p.1 as usize) < h) {perimeter +=1; continue;}`
+                // is not required here because a point off the grid is not going to be within the equivalence
+                // set - but it would be a faster operation if either w or y are 1 which should be super rare
+                // as it makes the problem trivial to solve
+
                 if !hs.contains(&p) {
-                    perimiter += 1;
+                    perimeter += 1;
                 }
             }
         }
 
-        sum += area * perimiter;
+        sum += area * perimeter;
     }
 
     println!("{}", sum);

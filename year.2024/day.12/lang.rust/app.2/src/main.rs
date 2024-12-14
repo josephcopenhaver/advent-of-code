@@ -54,26 +54,41 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 if grid[np.1 as usize][np.0 as usize] == grid[y][x] {
                     if merged_at_least_once {
-                        // short circuit if the candidate node is already in the src node we're going to merge into dst
-                        let rc_src = equiv_sets
+                        // short circuit if the candidate node is already in the node above's set
+                        let rc_set_a = equiv_sets
                             .get(&np)
                             .expect("must exist: above entry")
                             .clone();
-                        let src = rc_src.borrow();
-                        if src.contains(&p) {
+                        let set_a = rc_set_a.borrow();
+                        if set_a.contains(&p) {
                             continue;
                         }
 
-                        // merge the sets left and above into left
-                        let rc_dst = equiv_sets
+                        // merge the sets into the larger one or left
+                        let rc_set_b = equiv_sets
                             .get(&(p.0 - 1, p.1))
                             .expect("must exist: left entry")
                             .clone();
-                        let mut dst = rc_dst.borrow_mut();
+                        let set_b = rc_set_b.borrow();
+
+                        // minimize movement operations by finding the minimum size set to act as src
+
+                        let merge_b_to_a = set_b.len() < set_a.len();
+                        drop(set_b);
+                        drop(set_a);
+
+                        let (src, mut dst, rc_dst) = if merge_b_to_a {
+                            (rc_set_b.borrow(), rc_set_a.borrow_mut(), &rc_set_a)
+                        } else {
+                            (rc_set_a.borrow(), rc_set_b.borrow_mut(), &rc_set_b)
+                        };
+
+                        // perform the union and moves the equivalence class requires
                         for v in src.iter().cloned() {
                             dst.insert(v);
                             equiv_sets.insert(v, rc_dst.clone());
                         }
+
                         continue;
                     }
                     merged_at_least_once = true;
@@ -125,7 +140,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // mark each border as handled when the raycast overlaps
         // count each raycast regardless of length
 
-        let mut perimiter = 0;
+        let mut perimeter = 0;
         for v in hs.iter().cloned() {
             equiv_sets.remove(&v);
 
@@ -151,7 +166,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     continue;
                 }
 
-                perimiter += 1;
+                perimeter += 1;
 
                 for od in orth_dirs[i] {
                     let mut p = v;
@@ -183,7 +198,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
 
-        sum += area * perimiter;
+        sum += area * perimeter;
     }
 
     println!("{}", sum);
