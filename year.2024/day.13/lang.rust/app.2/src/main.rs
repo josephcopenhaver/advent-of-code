@@ -14,11 +14,16 @@ const INPUT: &str = include_str!("../../../input.txt");
 // 1. 94*a + 22*b = 8400
 // 2. 34*a + 67*b = 5400
 //
+// solve using substitution
+// - works as long as sets of terms are not multiples of a common factor
+// - gonna assume they are not and tweak if needed - multiple solver packages exist if need be
+//
+//
 // 1.2 a = (8400 - 22*b)/94
 // 1.3 34*(8400 - 22*b) + 67*94*b = 5400*94
 // 1.4 8400*34 - 22*34*b + 67*94*b = 5400*94
 // 1.5 67*94*b - 22*34*b = 5400*94 - 8400*34
-// 1.5 b = (5400*94 - 8400*34)/(67*94 - 22*34)
+// 1.6 b = (5400*94 - 8400*34)/(67*94 - 22*34)
 // 2.2 a = (5400 - 67*b)/34
 
 const PRIZE_OFFSET: i64 = 10_000_000_000_000;
